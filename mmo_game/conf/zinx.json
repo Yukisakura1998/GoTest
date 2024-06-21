@@ -1,0 +1,8 @@
+{
+  "Name":          "MMO Game Zinx",
+  "Version":       "1.0.0",
+  "TcpPort":       8080,
+  "Host":          "0.0.0.0",
+  "MaxConn":       30,
+  "MaxPacketSize": 10
+}

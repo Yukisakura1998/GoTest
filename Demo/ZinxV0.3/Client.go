@@ -15,7 +15,7 @@ func main() {
 	}
 
 	for {
-		_, err := conn.Write([]byte("go 0.2\r\n"))
+		_, err := conn.Write([]byte("go 0.3\r\n"))
 		if err != nil {
 			return
 		}

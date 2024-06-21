@@ -15,7 +15,16 @@ type IConnection interface {
 	// RemoteAddr : get client status
 	RemoteAddr() net.Addr
 	// Send : send message
-	Send(data []byte) error
+	Send(msgId uint32, data []byte) error
+	// SendBuff : have buffer
+	SendBuff(msgId uint32, data []byte) error
+
+	// GetProp :get prop
+	GetProp(key string) (interface{}, error)
+	// SetProp :set prop
+	SetProp(key string, value interface{})
+	// RemoveProp :remove prop
+	RemoveProp(key string)
 }
 
 // HandleFunc resolve function

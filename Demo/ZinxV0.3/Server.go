@@ -20,7 +20,7 @@ func (r *PingRouter) PreHandle(request ziface.IRequest) {
 	}
 }
 
-func (r *PingRouter) MainHandle(request ziface.IRequest) {
+func (r *PingRouter) Handle(request ziface.IRequest) {
 	fmt.Println("call ping")
 	_, err := request.GetConnection().GetTCPConnection().Write([]byte("ping\r\n"))
 	if err != nil {
