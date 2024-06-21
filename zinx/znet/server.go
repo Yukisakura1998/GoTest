@@ -3,6 +3,7 @@ package znet
 import (
 	"fmt"
 	"net"
+	"zinx/zinx/utils"
 	"zinx/zinx/ziface"
 )
 
@@ -86,12 +87,13 @@ func (s *Server) Server() {
 func (s *Server) AddRouter(router ziface.IRouter) {
 	s.Router = router
 }
-func NewServer(name string) ziface.IServer {
+func NewServer() ziface.IServer {
+	utils.GlobalObject.LoadJson()
 	s := &Server{
 		IPVersion: "tcp4",
-		IPAddress: "0.0.0.0",
-		Port:      8080,
-		Name:      name,
+		IPAddress: utils.GlobalObject.Host,
+		Port:      utils.GlobalObject.TcpPort,
+		Name:      utils.GlobalObject.Name,
 		Router:    nil,
 	}
 	return s
