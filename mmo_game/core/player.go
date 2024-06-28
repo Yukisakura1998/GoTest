@@ -87,8 +87,109 @@ func (p *Player) Talk(content string) {
 	for _, player := range players {
 		err := player.SendMsg(200, msg)
 		if err != nil {
-			return
+			continue
 		}
 	}
 
+}
+
+func (p *Player) GetSurrounding() []*Player {
+	surroundPIds := ThisWorldManagement.AoiManagement.GetPlayerIdsByPosition(p.X, p.Z)
+	surroundPlayers := make([]*Player, 0, len(surroundPIds))
+	for _, pid := range surroundPIds {
+		surroundPlayers = append(surroundPlayers, ThisWorldManagement.GetPlayerByPlayerId(int32(pid)))
+	}
+	return surroundPlayers
+}
+func (p *Player) SyncSurrounding() {
+	//surroundPIds := ThisWorldManagement.AoiManagement.GetPlayerIdsByPosition(p.X, p.Z)
+	//surroundPlayers := make([]*Player, 0, len(surroundPIds))
+	//for _, pid := range surroundPIds {
+	//	surroundPlayers = append(surroundPlayers, ThisWorldManagement.GetPlayerByPlayerId(int32(pid)))
+	//}
+	surroundPlayers := p.GetSurrounding()
+	msg := &pb.BroadCast{
+		Pid: p.PlayerId,
+		Tp:  2,
+		Data: &pb.BroadCast_P{
+			P: &pb.Position{
+				X: p.X,
+				Y: p.Y,
+				Z: p.Z,
+				V: p.V,
+			},
+		},
+	}
+	for _, player := range surroundPlayers {
+		err := player.SendMsg(200, msg)
+		if err != nil {
+			continue
+		}
+	}
+
+	playersData := make([]*pb.Player, 0, len(surroundPlayers))
+	for _, player := range surroundPlayers {
+		//有必要吗？有，要从core.player转为pb.player
+		p := &pb.Player{
+			Pid: player.PlayerId,
+			P: &pb.Position{
+				X: player.X,
+				Y: player.Y,
+				Z: player.Z,
+				V: player.V,
+			},
+		}
+		//
+		playersData = append(playersData, p)
+	}
+	SyncPlayersMsg := &pb.SyncPlayers{
+		Ps: playersData[:],
+	}
+	err := p.SendMsg(202, SyncPlayersMsg)
+	if err != nil {
+		return
+	}
+}
+
+func (p *Player) Move(x float32, y float32, z float32, v float32) {
+	p.X = x
+	p.Y = y
+	p.Z = z
+	p.V = v
+	//send to surrounding
+	msg := &pb.BroadCast{
+		Pid: p.PlayerId,
+		Tp:  4,
+		Data: &pb.BroadCast_P{
+			P: &pb.Position{
+				X: p.X,
+				Y: p.Y,
+				Z: p.Z,
+				V: p.V,
+			},
+		},
+	}
+	players := p.GetSurrounding()
+	for _, player := range players {
+		err := player.SendMsg(200, msg)
+		if err != nil {
+			continue
+		}
+	}
+}
+
+func (p *Player) Logout() {
+	players := p.GetSurrounding()
+	msg := &pb.SyncPlayerId{
+		PlayerId: p.PlayerId,
+	}
+	for _, player := range players {
+		err := player.SendMsg(201, msg)
+		if err != nil {
+			continue
+		}
+	}
+	//remove to management
+	ThisWorldManagement.AoiManagement.RemovePlayerIdFromGridByPosition(p.X, p.Z, int(p.PlayerId))
+	ThisWorldManagement.RemovePlayer(p.PlayerId)
 }
